@@ -85,8 +85,10 @@ char* findValueByKey(SectionStore *store, char *sectionName, char *key)
                     return strdup((store->sections[i].keyValuePairs[j].value));
                 }
             }
+            printf("There is no key: %s",key);
             return NULL;
         }
     }
+    printf("There is no section: %s",sectionName);
     return NULL;
 }
