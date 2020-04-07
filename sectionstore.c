@@ -13,7 +13,6 @@ SectionStore *createSectionStore()
 
 Section *addSection(SectionStore *store, char *name)
 {
-    printf("adding section \n");
     if (store->numberOfElements == store->maxNumberOfElement)
     {
         store->maxNumberOfElement *= 2;

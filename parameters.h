@@ -8,7 +8,7 @@ typedef struct Parameters{
     char * firstValue;
     char * secondKey;
     char * secondValue;
-    char * operation;
+    char operation;
 } Parameters;
 
 Parameters* getParameters(int argc, char**argv);

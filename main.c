@@ -1,65 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "sectionstore.h"
 #include "parameters.h"
-#include "filereader.h"
-
-bool is_alphanumerical(char* text){
-    for(int i=0;i<strlen(text);i++){
-        if(!is_alphanumerical(text[i])){
-            return false;
-        }
-    }
-    return false;
-}
-
-SectionStore *parseFile(FILE *file)
-{
-    char *line;
-    
-    SectionStore *store = createSectionStore();
-    Section *currentSection;
-    while (readLine(file,&line))
-    {
-        if( line[0]==';' || line[0]=='\n'){
-            free(line);
-            continue;
-        }
-        if (line[0] == '[')
-        {
-            char* sectionName = malloc(strlen(line)*sizeof(char));
-            strncpy(sectionName,line+1,strlen(line));
-            sectionName[strlen(sectionName)-2]='\0';
-            if(!is_alphanumerical(sectionName)){
-                free(line);
-                free(sectionName);
-                return NULL;
-            }
-            currentSection = addSection(store,sectionName);
-            free(sectionName);
-        }else {
-            char* key = strdup(strtok(line, "="));
-            char* trimmedKey = malloc(strlen(key)*sizeof(char));
-            strncpy(trimmedKey,key,strlen(key));//remove last character
-            trimmedKey[strlen(key)-1]='\0';
-            free(key);
-            char* value = strdup(strtok(NULL,"="));
-            char * trimmedValue = malloc(strlen(value)*sizeof(char));
-            strncpy(trimmedValue,value+1,strlen(value));//remove first character
-            trimmedValue[strlen(value)-2]='\0';
-            free(value);
-            addKeyValuePair(currentSection,trimmedKey,trimmedValue);
-            free(trimmedKey);
-            free(trimmedValue);
-        }
-        free(line);
-    }
-
-
-    return store;
-}
+#include "fileparser.h"
+#include "utils.h"
 
 void cleanMemory(Parameters *params, SectionStore *store)
 {
@@ -82,10 +27,11 @@ int main(int argc, char **argv)
         return 1;
     }
     SectionStore *store = parseFile(file);
-    if(store=NULL){
+    fclose(file);
+    if(store==NULL){
+        deleteParameters(params);
         return 1;
     }
-    fclose(file);
     printf("%d\n", store->numberOfElements);
 
     char* firstValue = findValueByKey(store, params->firstKey, params->firstValue);
@@ -102,11 +48,49 @@ int main(int argc, char **argv)
         free(firstValue);
         free(secondValue);
         cleanMemory(params, store);
-        exit(1);
+        return 1;
     }
-    printf("%s\n",secondValue);
+    int exitCode=0;
+    if(is_a_number(firstValue)&&is_a_number(secondValue)){
+        float score;
+        switch (params->operation)
+        {
+        case '*':
+            score = atof(firstValue)*atof(secondValue);
+            break;
+        case '+':
+            score = atof(firstValue)+atof(secondValue);
+            break;
+        case '\\':
+            score = atof(firstValue)/atof(secondValue);
+            break;
+        case '-':
+            score = atof(firstValue)-atof(secondValue);
+            break;
+        }
+        
+        printf("Result is: %f\n",score);
+    }else if(!is_a_number(firstValue)&&!is_a_number(secondValue)){
+        if(params->operation=='+'){
+            size_t l1 = strlen(firstValue);
+            size_t l2 = strlen(secondValue);
+            char* result = malloc((l1+l2+1)*sizeof(char));
+            memcpy(result,firstValue,l1*sizeof(char));
+            memcpy(result+l1,secondValue,l2+1);
+            printf("Result is: %s\n",result);
+            free(result);
+        }else{
+            printf("Unsupported operation for strings\n");
+            exitCode=1;
+        }
+    }else{
+        printf("Error: Values are of different type\n");
+        exitCode=1;
+    }
+
+    //final memory freeing
     free(firstValue);
     free(secondValue);
     cleanMemory(params, store);
-    return 0;
+    exit(exitCode);
 }

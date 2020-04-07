@@ -7,7 +7,9 @@ Parameters* getParameters(int argc, char**argv){
     Parameters *params =malloc(sizeof(struct Parameters));
     params->filename = strdup(argv[1]);
     char * firstVariable = strdup(strtok(argv[3], " "));
-    params->operation = strdup(strtok(NULL, " "));
+    char * operation = strdup(strtok(NULL, " "));
+    params->operation = operation[0];
+    free(operation);
     char * secondVariable = strdup(strtok(NULL, " "));
     params->firstKey = strdup(strtok(firstVariable, "."));
     params->firstValue = strdup(strtok(NULL, "."));
@@ -21,7 +23,6 @@ Parameters* getParameters(int argc, char**argv){
 
 void deleteParameters(Parameters* params){
     free(params->filename);
-    free(params->operation);
     free(params->firstKey);
     free(params->firstValue);
     free(params->secondKey);
