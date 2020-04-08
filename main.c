@@ -32,7 +32,6 @@ int main(int argc, char **argv)
         deleteParameters(params);
         return 1;
     }
-    printf("%d\n", store->numberOfElements);
 
     char* firstValue = findValueByKey(store, params->firstKey, params->firstValue);
     if (firstValue == NULL)
@@ -41,7 +40,6 @@ int main(int argc, char **argv)
         cleanMemory(params, store);
         return 1;
     }
-    printf("%s\n",firstValue);
     char* secondValue = findValueByKey(store, params->secondKey, params->secondValue);
     if (secondValue == NULL)
     {
